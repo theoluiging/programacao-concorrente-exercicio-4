@@ -74,8 +74,30 @@ class Hello implements Runnable {
 }
 
 class Primo implements Runnable {
-   //...completar implementacao, recebe um numero inteiro positivo e imprime se esse numero eh primo ou nao
-   public void run() {}
+   private long numero;
+
+   public Primo(long n) {
+      this.numero = n;
+   }
+
+   //funcao para determinar se um numero  ́e primo
+   private boolean ehPrimo(long n) {
+      if (n <= 1) return false;
+      if (n == 2) return true;
+      if (n % 2 == 0) return false;
+      for (long i = 3; i < Math.sqrt(n)+1; i += 2) { 
+         if (n % i == 0) return false;
+      }
+      return true;
+   }
+
+   public void run() {
+      if (this.ehPrimo(this.numero)) {
+         System.out.println("O numero " + this.numero + " eh primo.");
+      } else {
+         System.out.println("O numero " + this.numero + " nao eh primo.");
+      }
+   }
 }
 
 //Classe da aplicação (método main)
@@ -88,11 +110,12 @@ class MyPool {
       
       //--PASSO 3: dispara a execução dos objetos runnable usando o pool de threads
       for (int i = 0; i < 25; i++) {
-        final String m = "Hello da tarefa " + i;
-        Runnable hello = new Hello(m);
-        pool.execute(hello);
-        //Runnable primo = new Primo(i);
-        //pool.execute(primo);
+        // final String m = "Hello da tarefa " + i;
+        // Runnable hello = new Hello(m);
+        // pool.execute(hello);
+
+        Runnable primo = new Primo(i);
+        pool.execute(primo);
       }
 
       //--PASSO 4: esperar pelo termino das threads
