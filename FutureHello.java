@@ -13,56 +13,66 @@ import java.util.concurrent.Future;
 import java.util.ArrayList;
 import java.util.List;
 
+class VerificaPrimoCallable implements Callable<Integer> {
+  private long numero;
 
-//classe runnable
-class MyCallable implements Callable<Long> {
-  //construtor
-  MyCallable() {}
- 
-  //método para execução
-  public Long call() throws Exception {
-    long s = 0;
-    for (long i=1; i<=100; i++) {
-      s++;
+  public VerificaPrimoCallable(long numero) {
+    this.numero = numero;
+  }
+
+  // Função para determinar se um numero é primo
+  private boolean ehPrimo(long n) {
+    if (n <= 1) return false;
+    if (n == 2) return true;
+    if (n % 2 == 0) return false;
+    for (long i = 3; i < Math.sqrt(n)+1; i += 2) {
+      if (n % i == 0) return false;
     }
-    return s;
+    return true;
+  }
+
+  public Integer call() throws Exception {
+      if (ehPrimo(this.numero)) {
+        return 1;
+      } else {
+        return 0;
+      }
   }
 }
 
 //classe do método main
 public class FutureHello  {
-  private static final int N = 3;
+  private static final int N = 1000000;
   private static final int NTHREADS = 10;
 
   public static void main(String[] args) {
     //cria um pool de threads (NTHREADS)
     ExecutorService executor = Executors.newFixedThreadPool(NTHREADS);
     //cria uma lista para armazenar referencias de chamadas assincronas
-    List<Future<Long>> list = new ArrayList<Future<Long>>();
+    List<Future<Integer>> list = new ArrayList<Future<Integer>>();
 
     for (int i = 0; i < N; i++) {
-      Callable<Long> worker = new MyCallable();
-      /*submit() permite enviar tarefas Callable ou Runnable e obter um objeto Future para acompanhar o progresso e recuperar o resultado da tarefa
-       */
-      Future<Long> submit = executor.submit(worker);
+      Callable<Integer> worker = new VerificaPrimoCallable(i);    
+
+      Future<Integer> submit = executor.submit(worker);
       list.add(submit);
     }
 
-    System.out.println(list.size());
-    //pode fazer outras tarefas...
-
+    System.out.println("Tarefas submetidas: " + list.size());
+        
     //recupera os resultados e faz o somatório final
-    long sum = 0;
-    for (Future<Long> future : list) {
+    long totalPrimos = 0;
+    for (Future<Integer> future : list) {
       try {
-        sum += future.get(); //bloqueia se a computação nao tiver terminado
+        totalPrimos += future.get(); //bloqueia ate a tarefa terminar e retorna o resultado (0 ou 1)
       } catch (InterruptedException e) {
         e.printStackTrace();
       } catch (ExecutionException e) {
         e.printStackTrace();
       }
     }
-    System.out.println(sum);
+        
+    System.out.println("Total de numeros primos entre 1 e " + N + ": " + totalPrimos);
     executor.shutdown();
   }
 }
